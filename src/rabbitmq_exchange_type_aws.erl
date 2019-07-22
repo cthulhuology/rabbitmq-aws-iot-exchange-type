@@ -9,16 +9,16 @@
 %%
 %%
 
--module(rabbit_exchange_type_aws).
+-module(rabbitmq_exchange_type_aws).
 
--include("rabbit.hrl").
+-include_lib("rabbit_common/include/rabbit.hrl").
 
 -behavior(rabbit_exchange_type).
 
 -export([info/1, info/2]).
 -export([ description/0, serialise_events/0, route/2 ]).
 -export([ validate/1, validate_binding/2, create/2, delete/3, policy_changed/2,
-	add_binding/3, removing_bindings/3, assert_args_equivalence/2 ]).
+	add_binding/3, remove_bindings/3, assert_args_equivalence/2 ]).
 
 -rabbit_boot_step({ ?MODULE, [
 	{ description, "exchange type aws" },
@@ -34,10 +34,10 @@ info(_X, _) -> [].
 description() ->
 	[{name, <<"aws">>},{ description, <<"AWS IoT forwarding MQTT forwarding exchange">>}].
 
-serialize_events() -> false.
+serialise_events() -> false.
 
-route( #exchange{ name = X },
-	#delivery{ message = Message#basic_message{ routing_keys = Routes }}) ->
+route( #exchange{ name = Name }, #delivery{ message = Message }) ->
+	#basic_message{ routing_keys = Routes } = Message,
 	io:format("~p~n", [ Message ]),
 	rabbitmq_aws_iot:route(Name,Routes,Message).
 	
